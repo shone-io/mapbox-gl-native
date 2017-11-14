@@ -12,6 +12,8 @@ namespace android {
 
     jni::jobject* createJavaSourcePeer(jni::JNIEnv&, AndroidRendererFrontend&, mbgl::style::Source&);
 
+    jni::jobject* removeSourceFromMap(std::unique_ptr<mbgl::style::Source>&&);
+
     void registerNativeSources(jni::JNIEnv&);
 
 } // namespace android

@@ -33,16 +33,18 @@ public:
 
     virtual ~Source();
 
-    /**
-     * Set core source (ie return ownership after remove)
-     */
-    void setSource(std::unique_ptr<style::Source>);
-
     style::Source& get();
 
-    void addToMap(mbgl::Map&);
+    void addToMap(JNIEnv&, jni::Object<Source>, mbgl::Map&);
+
+    void removeFromMap(JNIEnv&, jni::Object<Source>, mbgl::Map&);
+
+    void attachJavaSource(JNIEnv& env, jni::Object<Source>);
+    jni::jobject* attachCoreSource(std::unique_ptr<style::Source>);
 
     void setRendererFrontend(AndroidRendererFrontend&);
+
+    jni::jobject* getJavaPeer(jni::JNIEnv&);
 
     virtual jni::jobject* createJavaPeer(jni::JNIEnv&) = 0;
 
@@ -59,6 +61,9 @@ protected:
 
     // Raw pointer that is valid until the source is removed from the map
     mbgl::style::Source& source;
+
+    // Set when the source is added to a map
+    jni::UniqueObject<Source> javaPeer;
 
     // RendererFrontend pointer is valid only when
     // added to the map
