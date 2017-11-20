@@ -30,7 +30,12 @@ void GlyphManager::getGlyphs(GlyphRequestor& requestor, GlyphDependencies glyphD
         const GlyphIDs& glyphIDs = dependency.second;
         GlyphRangeSet ranges;
         for (const auto& glyphID : glyphIDs) {
-            ranges.insert(getGlyphRange(glyphID));
+            if (localGlyphs.canGenerateGlyph(glyphID)) {
+                entry.glyphs.erase(glyphID);
+                entry.glyphs.emplace(glyphID, makeMutable<Glyph>(localGlyphs.generateGlyph(glyphID)));
+            } else {
+                ranges.insert(getGlyphRange(glyphID));
+            }
         }
 
         for (const auto& range : ranges) {
