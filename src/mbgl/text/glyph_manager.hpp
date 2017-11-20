@@ -3,7 +3,7 @@
 #include <mbgl/text/glyph.hpp>
 #include <mbgl/text/glyph_manager_observer.hpp>
 #include <mbgl/text/glyph_range.hpp>
-#include <mbgl/text/local_glyph_generator.hpp>
+#include <mbgl/text/local_glyph_rasterizer.hpp>
 #include <mbgl/util/noncopyable.hpp>
 #include <mbgl/util/font_stack.hpp>
 #include <mbgl/util/immutable.hpp>
@@ -43,6 +43,8 @@ public:
     void setObserver(GlyphManagerObserver*);
 
 private:
+    Glyph generateLocalSDF(const FontStack& fontStack, GlyphID glyphID);
+
     FileSource& fileSource;
     std::string glyphURL;
 
@@ -64,7 +66,7 @@ private:
     void notify(GlyphRequestor&, const GlyphDependencies&);
     
     GlyphManagerObserver* observer = nullptr;
-    LocalGlyphGenerator localGlyphs;
+    LocalGlyphRasterizer localGlyphs;
 };
 
 } // namespace mbgl

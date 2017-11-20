@@ -5,7 +5,7 @@
 namespace mbgl {
 namespace util {
 
-AlphaImage generateTinySDF(const PremultipliedImage& rasterInput);
+AlphaImage generateTinySDF(const AlphaImage& rasterInput, double radius, double cutoff);
 
 } // namespace util
 } // namespace mbgl

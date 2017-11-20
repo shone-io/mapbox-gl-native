@@ -4,6 +4,7 @@
 #include <mbgl/storage/file_source.hpp>
 #include <mbgl/storage/resource.hpp>
 #include <mbgl/storage/response.hpp>
+#include <mbgl/util/tiny_sdf.hpp>
 
 namespace mbgl {
 
@@ -30,9 +31,10 @@ void GlyphManager::getGlyphs(GlyphRequestor& requestor, GlyphDependencies glyphD
         const GlyphIDs& glyphIDs = dependency.second;
         GlyphRangeSet ranges;
         for (const auto& glyphID : glyphIDs) {
-            if (localGlyphs.canGenerateGlyph(glyphID)) {
-                entry.glyphs.erase(glyphID);
-                entry.glyphs.emplace(glyphID, makeMutable<Glyph>(localGlyphs.generateGlyph(glyphID)));
+            if (localGlyphs.canGenerateGlyph(fontStack, glyphID)) {
+                if (entry.glyphs.find(glyphID) == entry.glyphs.end()) {
+                    entry.glyphs.emplace(glyphID, makeMutable<Glyph>(generateLocalSDF(fontStack, glyphID)));
+                }
             } else {
                 ranges.insert(getGlyphRange(glyphID));
             }
@@ -53,6 +55,12 @@ void GlyphManager::getGlyphs(GlyphRequestor& requestor, GlyphDependencies glyphD
     if (dependencies.unique()) {
         notify(requestor, *dependencies);
     }
+}
+
+Glyph GlyphManager::generateLocalSDF(const FontStack& fontStack, GlyphID glyphID) {
+    Glyph local = localGlyphs.generateRasterGlyph(fontStack, glyphID);
+    local.bitmap = util::generateTinySDF(local.bitmap, 8, .25);
+    return local;
 }
 
 void GlyphManager::requestRange(GlyphRequest& request, const FontStack& fontStack, const GlyphRange& range) {

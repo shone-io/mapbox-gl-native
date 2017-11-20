@@ -68,7 +68,7 @@ void edt(std::vector<double>& data,
 
 } // namespace tinysdf
 
-AlphaImage generateTinySDF(const PremultipliedImage& rasterInput, double radius, double cutoff) {
+AlphaImage generateTinySDF(const AlphaImage& rasterInput, double radius, double cutoff) {
     uint32_t size = rasterInput.size.width * rasterInput.size.height;
     uint32_t maxDimension = std::max(rasterInput.size.width, rasterInput.size.height);
     
