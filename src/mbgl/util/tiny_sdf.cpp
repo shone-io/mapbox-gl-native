@@ -9,6 +9,8 @@ namespace util {
 
 namespace tinysdf {
 
+static const double INF = 1e20;
+
 // 1D squared distance transform
 void edt1d(std::vector<double>& f,
            std::vector<double>& d,
@@ -16,8 +18,8 @@ void edt1d(std::vector<double>& f,
            std::vector<double>& z,
            uint32_t n) {
     v[0] = 0;
-    z[0] = -std::numeric_limits<double>::infinity();
-    z[1] = +std::numeric_limits<double>::infinity();
+    z[0] = -INF;
+    z[1] = +INF;
 
     for (uint32_t q = 1, k = 0; q < n; q++) {
         double s = ((f[q] + q * q) - (f[v[k]] + v[k] * v[k])) / (2 * q - 2 * v[k]);
@@ -28,7 +30,7 @@ void edt1d(std::vector<double>& f,
         k++;
         v[k] = q;
         z[k] = s;
-        z[k + 1] = +std::numeric_limits<double>::infinity();
+        z[k + 1] = +INF;
     }
 
     for (uint32_t q = 0, k = 0; q < n; q++) {
@@ -75,25 +77,26 @@ AlphaImage generateTinySDF(const AlphaImage& rasterInput, double radius, double 
     AlphaImage sdf(rasterInput.size);
     
     // temporary arrays for the distance transform
-    std::vector<double> gridOuter; gridOuter.reserve(size);
-    std::vector<double> gridInner; gridInner.reserve(size);
-    std::vector<double> f; f.reserve(maxDimension);
-    std::vector<double> d; d.reserve(maxDimension);
-    std::vector<double> z; z.reserve(maxDimension + 1);
-    std::vector<int16_t> v; v.reserve(maxDimension);
+    // TODO: Initializing with 0s may not be necessary?
+    std::vector<double> gridOuter(size);
+    std::vector<double> gridInner(size);
+    std::vector<double> f(maxDimension);
+    std::vector<double> d(maxDimension);
+    std::vector<double> z(maxDimension + 1);
+    std::vector<int16_t> v(maxDimension);
     
     for (uint32_t i = 0; i < size; i++) {
-        double a = rasterInput.data[i * 4 + 3] / 255; // alpha value
-        gridOuter[i] = a == 1.0 ? 0.0 : a == 0.0 ? std::numeric_limits<double>::infinity() : std::pow(std::max(0.0, 0.5 - a), 2.0);
-        gridInner[i] = a == 1.0 ? std::numeric_limits<double>::infinity() : a == 0.0 ? 0.0 : std::pow(std::max(0.0, a - 0.5), 2.0);
+        double a = double(rasterInput.data[i]) / 255; // alpha value
+        gridOuter[i] = a == 1.0 ? 0.0 : a == 0.0 ? tinysdf::INF : std::pow(std::max(0.0, 0.5 - a), 2.0);
+        gridInner[i] = a == 1.0 ? tinysdf::INF : a == 0.0 ? 0.0 : std::pow(std::max(0.0, a - 0.5), 2.0);
     }
 
-    tinysdf::edt(gridOuter, size, size, f, d, v, z);
-    tinysdf::edt(gridInner, size, size, f, d, v, z);
+    tinysdf::edt(gridOuter, rasterInput.size.width, rasterInput.size.height, f, d, v, z);
+    tinysdf::edt(gridInner, rasterInput.size.width, rasterInput.size.height, f, d, v, z);
 
     for (uint32_t i = 0; i < size; i++) {
         double distance = gridOuter[i] - gridInner[i];
-        sdf.data[i] = std::max(0, std::min(255, static_cast<int>(std::lround(255 - 255 * (distance / radius + cutoff)))));
+        sdf.data[i] = std::max(0l, std::min(255l, std::lround(255.0 - 255.0 * (distance / radius + cutoff))));
     }
 
     return sdf;
