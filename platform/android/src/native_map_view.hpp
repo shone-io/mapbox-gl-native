@@ -232,8 +232,6 @@ public:
 
     void addSource(JNIEnv&, jni::Object<Source>, jlong nativePtr);
 
-    jni::Object<Source> removeSourceById(JNIEnv&, jni::String);
-
     void removeSource(JNIEnv&, jni::Object<Source>, jlong nativePtr);
 
     void addImage(JNIEnv&, jni::String, jni::jint, jni::jint, jni::jfloat, jni::Array<jbyte>);

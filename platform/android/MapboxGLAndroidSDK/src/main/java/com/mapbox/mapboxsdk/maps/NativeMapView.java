@@ -741,7 +741,11 @@ final class NativeMapView {
     if (isDestroyedOn("removeSource")) {
       return null;
     }
-    return nativeRemoveSourceById(sourceId);
+    Source source = getSource(sourceId);
+    if (source) {
+        removeSource(source);
+    }
+    return source;
   }
 
   public Source removeSource(@NonNull Source source) {
